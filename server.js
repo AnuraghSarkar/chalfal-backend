@@ -4,6 +4,9 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import bcrypt from "bcrypt";
+import User from "./models/User.js";
+import jwt from "jsonwebtoken";
 
 const app = express();
 dotenv.config();
@@ -12,7 +15,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use(cookieParser());
-app.use(cors({ origin: "127.0.0.1:3000", credentials: true }));
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 
 await mongoose
   .connect(process.env.MONGO_URI, {
@@ -28,6 +31,21 @@ await mongoose
   .catch((err) => console.log(err.message));
 app.get("/", (req, res) => {
   res.send("Hello World!");
+});
+
+app.post("/register", (req, res) => {
+  const { email, username, password } = req.body;
+  const hashPassword = bcrypt.hashSync(password, 10);
+  const user = new User({ email, username, password: hashPassword });
+  user
+    .save()
+    .then(() => {
+      res.sendStatus(201);
+    })
+    .catch((e) => {
+      console.log(e);
+      res.sendStatus(500);
+    });
 });
 
 app.listen(4000, () => {
