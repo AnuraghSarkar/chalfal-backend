@@ -8,6 +8,7 @@ import bcrypt from "bcrypt";
 import User from "./models/User.js";
 import jwt from "jsonwebtoken";
 
+const secret = "secret123";
 const app = express();
 dotenv.config();
 
@@ -34,19 +35,43 @@ app.get("/", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  const { email, username, password } = req.body;
-  const hashPassword = bcrypt.hashSync(password, 10);
-  const user = new User({ email, username, password: hashPassword });
+  const { email, username } = req.body;
+  const password = bcrypt.hashSync(req.body.password, 10);
+  const user = new User({ email, username, password });
   user
     .save()
-    .then(() => {
-      res.sendStatus(201);
+    .then((user) => {
+      jwt.sign({ id: user._id }, secret, (err, token) => {
+        if (err) {
+          console.log(err);
+          res.sendStatus(500);
+        } else {
+          res.status(201).cookie("token", token).send();
+        }
+      });
     })
     .catch((e) => {
       console.log(e);
       res.sendStatus(500);
     });
 });
+
+app.get("/user", (req, res) => {
+  const token = req.cookies.token;
+
+  getUserFromToken(token)
+    .then((user) => {
+      res.json({ username: user.username });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.sendStatus(500);
+    });
+});
+
+app.post('/logout', (async (req, res) => { 
+  res.cookie.token('token', '').send();
+}))
 
 app.listen(4000, () => {
   console.log("Server is running on port 4000");
