@@ -17,7 +17,6 @@ const schema = new mongoose.Schema(
   { timestamps: true }
 );
 
-
 // Virtual password
 schema
   .virtual("password")
@@ -30,22 +29,23 @@ schema
     return this._password;
   });
 
-  // Methods
+// Methods
 schema.methods = {
-  makeSalt: function () { 
-    return crypto.randomBytes(16).toString("base64");
+  authenticate: function (plainText) {
+    return this.encryptPassword(plainText) === this.hashed_password;
   },
-  encryptPassword: function (password) { 
+  encryptPassword: function (password) {
     if (!password || !this.salt) return "";
     const salt = new Buffer(this.salt, "base64");
     return crypto
       .pbkdf2Sync(password, salt, 10000, 64, "sha512")
       .toString("base64");
   },
-  authenticate: function (plainText) { 
-    return this.encryptPassword(plainText) === this.hashed_password;
-  }
-}
+
+  makeSalt: function () {
+    return crypto.randomBytes(16).toString("base64");
+  },
+};
 
 const User = mongoose.model("User", schema);
 
