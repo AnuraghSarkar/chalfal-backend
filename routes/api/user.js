@@ -52,4 +52,26 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+router.put('/', auth, async (req, res) => {
+  try {
+    const user = req.user._id;
+    const update = req.body.profile;
+    const query = { _id: user };
+
+    const userDoc = await User.findOneAndUpdate(query, update, {
+      new: true
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Your profile is successfully updated!',
+      user: userDoc
+    });
+  } catch (error) {
+    res.status(400).json({
+      error: 'Your request could not be processed. Please try again.'
+    });
+  }
+});
+
 module.exports = router;
