@@ -5,7 +5,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
-import User from "./models/User.js";
+import User from "./models/user.js";
 import jwt from "jsonwebtoken";
 
 const secret = "secret123";

@@ -1,48 +1,40 @@
-import express from "express"
-import morgan from "morgan"
-import bodyParser from "body-parser"
-import cors from "cors"
-import dotenv from "dotenv"
-import dbConnections from "./config/db"
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
+const helmet = require("helmet");
 
-// Config env file
-dotenv.config({ path: 'config/.env' });
+const keys = require("./config/keys");
+// const webpackConfig = require('../webpack.config');
+const routes = require("./routes");
 
-// Connect to database
-dbConnections;
+const { database, port } = keys;
+const app = express();
 
-// Create express app
-const app = express()
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    frameguard: true,
+  })
+);
+app.use(cors());
 
-// Config Body Parser
-app.use(bodyParser.json())
+// Connect to MongoDB
+mongoose.set("useCreateIndex", true);
+mongoose
+  .connect(database.url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log(`Mongo connected`))
+  .catch((err) => console.log(err));
 
+require("./config/passport")(app);
+app.use(routes);
 
-// Configure app to use morgan
-if (process.env.NODE_ENV === 'development') {
-    app.use(cors({
-        origin: process.env.CLIENT_URL,
-    }))
-    app.use(morgan('dev'))
-}
- 
-// Load all routes
-import authRoutes from './routes/authRoutes.js';
-
-// Use Routes
-app.use('/api/', authRoutes);
-
-
-// Specify the 404 response
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    msg: "Page not founded",
-  });
+const server = app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
 
-//  specify the port
-const port = process.env.PORT
-
-app.get('/', (req, res) => res.send('Hello World!'))
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
