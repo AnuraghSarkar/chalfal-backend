@@ -16,7 +16,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use(cookieParser());
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({ origin: "http://localhost:3000", credentials: true, methods: "GET,HEAD,PUT,PATCH,POST,DELETE" }));
+
+
 
 await mongoose
   .connect(process.env.MONGO_URI, {
@@ -79,11 +81,9 @@ app.post("/login", (req, res) => {
         });
       } else {
         res.status(422).json("Invalid username or password");
-        alert("Invalid username or password");
       }
     } else {
       res.status(422).json("Invalid username or password");
-      alert("Invalid username or password");
     }
   });
 });

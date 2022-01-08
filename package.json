@@ -3,22 +3,33 @@
   "name": "api",
   "version": "1.0.0",
   "description": "Backend API for the Chalfal project",
-  "main": "server.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon --experimental-modules --es-module-specifier-resolution=node server.js"
+    "start": "NODE_ENV=production node app.js",
+    "dev": "nodemon --experimental-modules --es-module-specifier-resolution=node app.js"
   },
   "author": "Anuragh Timalsina",
   "license": "ISC",
   "dependencies": {
+    "@sendgrid/mail": "^7.6.0",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.19.1",
     "cookie-parser": "^1.4.6",
+    "cookie-session": "^2.0.0",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^10.0.0",
     "express": "^4.17.2",
+    "express-jwt": "^6.1.0",
+    "express-validator": "^6.14.0",
+    "google-auth-library": "^7.11.0",
     "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.21",
     "mongoose": "^6.1.5",
-    "nodemon": "^2.0.15"
+    "morgan": "^1.10.0",
+    "node-fetch": "^3.1.0",
+    "nodemon": "^2.0.15",
+    "passport": "^0.5.2"
   }
 }
