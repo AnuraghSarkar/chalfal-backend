@@ -1,15 +1,14 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const mongoose = require("mongoose");
-const helmet = require("helmet");
+import dotenv from "dotenv";
+dotenv.config();
 
-const keys = require("./config/keys");
-// const webpackConfig = require('../webpack.config');
-const routes = require("./routes");
-
-const { database, port } = keys;
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
+import routes from "./routes";
+import dbConnection from "./config/dbConnection";
 const app = express();
+
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -19,22 +18,18 @@ app.use(
     frameguard: true,
   })
 );
+app.use(cookieParser());
 app.use(cors());
 
 // Connect to MongoDB
-mongoose.set("useCreateIndex", true);
-mongoose
-  .connect(database.url, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log(`Mongo connected`))
-  .catch((err) => console.log(err));
+dbConnection;
 
-require("./config/passport")(app);
+
 app.use(routes);
 
-const server = app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.get("/", (req, res) => {
+  res.send("ok");
 });
-
+const server = app.listen(process.env.PORT, () => {
+  console.log(`Server is running on port ${process.env.PORT}`);
+});

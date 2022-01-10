@@ -1,8 +1,7 @@
-const multer = require('multer');
-const path = require('path');
-
+import multer from 'multer';
+import path from 'path';
 // Multer Configuration
-module.exports = multer({
+export default multer({
   storage: multer.diskStorage({}),
   fileFilter: (req, file, cb) => {
     let ext = path.extname(file.originalname);
