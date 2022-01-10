@@ -1,13 +1,14 @@
-const router = require("express").Router();
-const apiRoutes = require("./api");
+import dotenv from 'dotenv';
+dotenv.config();
 
-const keys = require("../config/keys");
-const { apiURL } = keys.app;
+import express from "express";
+const router = express.Router();
+import apiRoutes from "./api";
+const apiURL = process.env.API_URL;
 
 const api = `/${apiURL}`;
 
 // api routes
 router.use(api, apiRoutes);
 router.use(api, (req, res) => res.status(404).json("No API route found"));
-
-module.exports = router;
+export default router;

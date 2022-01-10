@@ -1,133 +1,66 @@
-const express = require("express");
-const router = express.Router();
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const passport = require("passport");
 
+import express from "express";
+import passport from "passport";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import User from "../../models/User";
+const router = express.Router();
 
 // Bring in Models & Helpers
-const User = require("../../models/user");
-const keys = require("../../config/keys");
 
-const { secret, tokenLife } = keys.jwt;
-
-router.post("/login", async (req, res) => {
-  try {
-    const { username, password } = req.body;
-
-    if (!username) {
-      return res
-        .status(400)
-        .json({ error: "You must enter an email address." });
-    }
-
-    if (!password) {
-      return res.status(400).json({ error: "You must enter a password." });
-    }
-
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res
-        .status(400)
-        .send({ error: "No user found for this username." });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(400).json({
-        success: false,
-        error: "Password Incorrect",
+router.post("/register", (req, res) => {
+  const { email, username } = req.body;
+  const password = bcrypt.hashSync(req.body.password, 10);
+  const user = new User({ email, username, password });
+  user
+    .save()
+    .then((user) => {
+      jwt.sign({ id: user._id }, secret, (err, token) => {
+        if (err) {
+          console.log(err);
+          res.sendStatus(500);
+        } else {
+          res.status(201).cookie("token", token).send();
+        }
       });
-    }
-
-    const payload = {
-      id: user.id,
-    };
-
-    const token = jwt.sign(payload, secret, { expiresIn: tokenLife });
-
-    if (!token) {
-      throw new Error();
-    }
-
-
-    res.status(200).json({
-      success: true,
-      token: `Bearer ${token}`,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-      },
+    })
+    .catch((e) => {
+      console.log(e);
+      res.sendStatus(500);
     });
-  } catch (error) {
-    res.status(400).json({
-      error: "Your request could not be processed. Please try again.",
-    });
-  }
 });
 
-router.post("/register", async (req, res) => {
-  try {
-    const { email, username, password } = req.body;
+router.get("/user", (req, res) => {
+  const token = req.cookies.token;
 
-    if (!email) {
-      return res
-        .status(400)
-        .json({ error: "You must enter an email address." });
-    }
-
-    if (!username) {
-      return res.status(400).json({ error: "You must enter your full name." });
-    }
-
-    if (!password) {
-      return res.status(400).json({ error: "You must enter a password." });
-    }
-
-    const existingUser = await User.findOne({ email });
-
-    if (existingUser) {
-      return res
-        .status(400)
-        .json({ error: "That email address is already in use." });
-    }
-
-    const user = new User({
-      email,
-      username,
-      password,
+  getUserFromToken(token)
+    .then((user) => {
+      res.json({ username: user.username });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.sendStatus(500);
     });
-
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(user.password, salt);
-
-    user.password = hash;
-    const registeredUser = await user.save();
-
-    const payload = {
-      id: registeredUser.id,
-    };
-
-    const token = jwt.sign(payload, secret, { expiresIn: tokenLife });
-
-    res.status(200).json({
-      success: true,
-      token: `Bearer ${token}`,
-      user: {
-        id: registeredUser.id,
-        username: registeredUser.username,
-        email: registeredUser.email,
-      },
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(400).json({
-      error: "Your request could not be processed. Please try again.",
-    });
-  }
 });
+
+router.post("/login", (req, res) => {
+  const { username, password } = req.body;
+  User.findOne({ username }).then((user) => {
+    if (user && user.username) {
+      const passOk = bcrypt.compareSync(password, user.password);
+      if (passOk) {
+        jwt.sign({ id: user._id }, secret, (err, token) => {
+          res.cookie("token", token).send();
+        });
+      } else {
+        res.status(422).json("Invalid username or password");
+      }
+    } else {
+      res.status(422).json("Invalid username or password");
+    }
+  });
+});
+
 
 router.get(
   "/google",
@@ -169,5 +102,4 @@ router.get(
   }
 );
 
-
-module.exports = router;
+export default router;
