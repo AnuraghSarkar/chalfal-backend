@@ -3,23 +3,22 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
-import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import routes from "./routes";
+import routes from "./routes/url";
+import bodyParser from "body-parser";
 import dbConnection from "./config/dbConnection";
 const app = express();
 
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.use(
-  helmet({
-    contentSecurityPolicy: false,
-    frameguard: true,
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
   })
 );
-app.use(cookieParser());
-app.use(cors());
 
 // Connect to MongoDB
 dbConnection;
