@@ -4,7 +4,7 @@ dotenv.config();
 import express from "express";
 const router = express.Router();
 import apiRoutes from "./api";
-const apiURL = process.env.API_URL;
+const apiURL = process.env.BASE_API_URL;
 
 const api = `/${apiURL}`;
 
