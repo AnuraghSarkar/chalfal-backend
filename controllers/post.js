@@ -2,6 +2,7 @@ const Post = require("../models/post");
 const User = require("../models/user");
 const { cloudinary, UPLOAD_PRESET } = require("../utils/config");
 const Subreddit = require("../models/subreddit");
+const postTypeValidator = require("../utils/postTypeValidator");
 
 const getPosts = async (req, res) => {
   const page = Number(req.query.page) || 1;
@@ -139,4 +140,56 @@ const getPostAndComments = async (req, res) => {
         .execPopulate();
     res.status(200).json(populatedPost);
 };
-module.exports = { getPosts, getSuscribedPosts, getSearchedPosts };
+
+// Controller to create a new post
+const createNewPost = async (req, res) => {
+    const { title, subreddit, postType, textSubmission, imageSubmission, linkSubmission } = req.body;
+    
+    const validatedFields = postTypeValidator(postType, textSubmission, imageSubmission, linkSubmission);
+    const author = await User.findById(req.user);
+    const targetSubreddit = await Subreddit.findById(subreddit);
+
+    if (!author) {
+        return res.status(404).send({ message: "User not found" });
+    }
+    if (!targetSubreddit) {
+        return res.status(404).send({ message: `Subreddit not found with id ${subreddit}` });
+    }
+    const newPost = new Post({
+        title,
+        subreddit,
+        author: author._id,
+        upvotedBy: [author._id],
+        pointsCount: 1,
+        ...validatedFields,
+    });
+
+    if (postType === 'Image') {
+        const uploadedImage = await cloudinary.uploader.upload(
+            imageSubmission,
+            {
+                upload_preset: UPLOAD_PRESET,
+            },
+            (error) => {
+                if (error) return res.status(401).send({ message: error.message });
+            }
+        );
+        newPost.imageSubmission = {
+            imageLink = uploadedImage.url,
+            imageId = uploadedImage.public_id,
+        }
+        
+    }
+    const savedPost = await newPost.save();
+    targetSubreddit.posts = targetSubreddit.posts.concat(savedPost._id);
+    await targetSubreddit.save();
+
+    author.posts = author.posts.concat(savedPost._id);
+    author.karmaPoints.postKarma++;
+    await author.save();
+
+    const populatedPost = await savedPost.populate('author', 'username').populate('subreddit', 'subredditName').execPopulate();
+    res.status(201).json(populatedPost)
+};
+
+module.exports = { getPosts, getSuscribedPosts, getSearchedPosts, getPostAndComments, createNewPost };
