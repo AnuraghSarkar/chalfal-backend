@@ -192,4 +192,23 @@ const createNewPost = async (req, res) => {
     res.status(201).json(populatedPost)
 };
 
+// Controller to update a post
+const updatePost = async (req, res) => { 
+    const { id } = req.params;
+    const { textSubmission, imageSubmission, linkSubmission } = req.body;
+    const post = await Post.findById(id);
+    const author = await User.findById(req.user);
+
+    if (!post) { 
+        return res.status(404).send({ message: `Post with the given ID ${id} was not found` });
+    }
+    if (!author) { 
+        return res.status(404).send({ message: "User not found" });
+    }
+    // Checking if the user is the author of the post
+    if (post.author.toString() !== author._id.toString()) { 
+        return res.status(401).send({ message: "You are not authorized to update this post" });
+    }
+}
+
 module.exports = { getPosts, getSuscribedPosts, getSearchedPosts, getPostAndComments, createNewPost };
