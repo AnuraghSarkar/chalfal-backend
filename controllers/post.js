@@ -232,6 +232,10 @@ const updatePost = async (req, res) => {
         default:
             return res.status(403).send({ message: "Invalid post type" });
     }
+    post.updatedAt = Date.now();
+    const savedPost = await post.save();
+    const populatedPost = await savedPost.populate('author', 'username').populate('subreddit', 'subredditName').populate('comments.commentedBy', 'username').populate('comments.replies.repliedBy', 'username').execPopulate();
+    res.status(202).json(populatedPost);
 }
 
-module.exports = { getPosts, getSuscribedPosts, getSearchedPosts, getPostAndComments, createNewPost };
+module.exports = { getPosts, getSuscribedPosts, getSearchedPosts, getPostAndComments, createNewPost, updatePost };
