@@ -38,7 +38,17 @@ const getPosts = async (req, res) => {
     // Default sort
     default:
       sortQuery = {};
-  }
+    }
+    const postsCount = await Post.countDocuments();
+    const paginated = paginateResults(postsCount, page, limit);
+    const allPosts = await Post.find({})
+        .sort(sortQuery).select("-comments").limit(limit).skip(paginated.startIndex).populate("author", "username").populate("subreddit", "subredditName");
+    const paginatedPosts = {
+        previous: paginated.results.previous,
+        results:allPosts,
+        next: paginated.results.next,
+    }
+    res.status(200).json(paginatedPosts);
 };
 
 module.exports = { getPosts };
