@@ -209,6 +209,29 @@ const updatePost = async (req, res) => {
     if (post.author.toString() !== author._id.toString()) { 
         return res.status(401).send({ message: "You are not authorized to update this post" });
     }
+    // validating the fields
+    const validatedFields = postTypeValidator(post.postType, textSubmission, imageSubmission, linkSubmission);
+
+    // switching the post type
+    switch (post.postType) { 
+        case 'Text':
+            post.textSubmission = validatedFields.textSubmission;
+            break;
+        case 'Image':
+            const uploadedImage = await cloudinary.uploader.upload(imageSubmission, {
+                upload_preset: UPLOAD_PRESET,
+            }, (error) => { if (error) return res.status(401).send({ message: error.message }) })
+            post.imageSubmission = {
+                imageLink = uploadedImage.url,
+                imageId = uploadedImage.public_id,
+            }
+            break;
+        case 'Link':
+            post.linkSubmission = validatedFields.linkSubmission;
+            break;
+        default:
+            return res.status(403).send({ message: "Invalid post type" });
+    }
 }
 
 module.exports = { getPosts, getSuscribedPosts, getSearchedPosts, getPostAndComments, createNewPost };
