@@ -104,16 +104,39 @@ const getSearchedPosts = async (req, res) => {
       { title: { $regex: query, $options: "i" } },
       { textSubmission: { $regex: query, $options: "i" } },
     ],
-    };
-    const postsCount = await Post.countDocuments(findQuery);
-    const paginated = paginateResults(page, limit, postsCount);
-    const searchedPosts = await Post.find(findQuery).limit(limit).skip(paginated.startIndex).populate("author", "username").populate("subreddit", "subredditName").select("-comments");
-    const paginatedPosts = {
-        previous: paginated.results.previous,
-        results: searchedPosts,
-        next: paginated.results.next,
-    }
-    res.status(200).json(paginatedPosts);
+  };
+  const postsCount = await Post.countDocuments(findQuery);
+  const paginated = paginateResults(page, limit, postsCount);
+  const searchedPosts = await Post.find(findQuery)
+    .limit(limit)
+    .skip(paginated.startIndex)
+    .populate("author", "username")
+    .populate("subreddit", "subredditName")
+    .select("-comments");
+  const paginatedPosts = {
+    previous: paginated.results.previous,
+    results: searchedPosts,
+    next: paginated.results.next,
+  };
+  res.status(200).json(paginatedPosts);
 };
 
-module.exports = { getPosts, getSuscribedPosts };
+// Geting post by id and comments
+const getPostAndComments = async (req, res) => {
+  const { id } = req.params;
+  const post = await Post.findById(id);
+  if (!post) {
+    return res.status(404).send({
+      message: `Post with the given ID ${id} was not found`,
+    });
+    }
+    // Querying populated post
+  const populatedPost = await post
+    .populate("author", "username")
+    .populate("subreddit", "subredditName")
+    .populate("comments.commentedBy", "username")
+    .populate("comments.replies.repliedBy", "username")
+        .execPopulate();
+    res.status(200).json(populatedPost);
+};
+module.exports = { getPosts, getSuscribedPosts, getSearchedPosts };
