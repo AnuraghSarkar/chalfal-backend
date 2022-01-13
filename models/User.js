@@ -1,38 +1,71 @@
-import Mongoose from "mongoose";
+const mongoose = require("mongoose");
+const uniqueValidator = require("mongoose-unique-validator");
+const schemaCleaner = require("../utils/schemaCleaner");
 
-const { Schema } = Mongoose;
-
-// User Schema
-const UserSchema = new Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-  },
-  username: {
-    type: String,
-    required: true,
-    minlength: 2,
-    maxlength: 50,
-  },
-  password: {
-    type: String,
-    required: true,
-    minlength: 5,
-    maxlength: 1024,
-  },
-  avatar: {
-    type: String,
-    default: function () {
-      return `https://gravatar.com/avatar/${this._id}?s=400&d=robohash&r=x`;
+const userSchema = new mongoose.Schema(
+  {
+    username: {
+      type: String,
+      minlength: 3,
+      maxlength: 20,
+      required: true,
+      trim: true,
     },
-      
+    passwordHash: {
+      type: String,
+      required: true,
+    },
+    avatar: {
+      exists: {
+        type: Boolean,
+        default: "false",
+      },
+      imageLink: {
+        type: String,
+        trim: true,
+        default: "null",
+      },
+      imageId: {
+        type: String,
+        trim: true,
+        default: "null",
+      },
+    },
+    karmaPoints: {
+      postKarma: {
+        type: Number,
+        default: 0,
+      },
+      commentKarma: {
+        type: Number,
+        default: 0,
+      },
+    },
+    posts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Post",
+      },
+    ],
+    subscribedSubs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Subreddit",
+      },
+    ],
+    totalComments: {
+      type: Number,
+      default: 0,
+    },
   },
-  created: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
-export default Mongoose.model("User", UserSchema);
+userSchema.plugin(uniqueValidator);
+
+// replaces _id with id, convert id to string from ObjectID and deletes __v
+schemaCleaner(userSchema);
+
+module.exports = mongoose.model("User", userSchema);
