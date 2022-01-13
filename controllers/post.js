@@ -238,4 +238,33 @@ const updatePost = async (req, res) => {
     res.status(202).json(populatedPost);
 }
 
-module.exports = { getPosts, getSuscribedPosts, getSearchedPosts, getPostAndComments, createNewPost, updatePost };
+const deltePost = async (req, res) => {
+    const { id } = req.params;
+    const post = await Post.findById(id);
+    const author = await User.findById(req.user);
+
+    if (!post) { 
+        return res.status(404).send({ message: `Post with the given ID ${id} was not found` });
+    }
+    if (!author) { 
+        return res.status(404).send({ message: "User not found" });
+    }
+    // Checking if the user is the author of the post
+    if (post.author.toString() !== author._id.toString()) { 
+        return res.status(401).send({ message: "You are not authorized to delete this post" });
+    }
+    const subreddit = await Subreddit.findById(post.subreddit);
+    if (!subreddit) { 
+        return res.status(404).send({ message: `Subreddit not found with id ${post.subreddit}` });
+    }
+    // Removing the post from the subreddit
+    await Post.findByIdAndDelete(id);
+    subreddit.posts = subreddit.posts.filter(postId => postId.toString() !== id);
+    await subreddit.save();
+
+    author.posts = author.posts.filter(postId => postId.toString() !== id);
+    await author.save();
+    res.status(204).end();
+}
+
+module.exports = { getPosts, getSuscribedPosts, getSearchedPosts, getPostAndComments, createNewPost, updatePost, deltePost };
