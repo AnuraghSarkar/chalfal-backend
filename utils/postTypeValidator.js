@@ -16,17 +16,33 @@ const parseImageSubmission = (imageSubmission) => {
     return imageSubmission;
 };
 
+// Validate the link submission
+const parseLinkSubmission = (linkSubmission) => { 
+    if (!linkSubmission) {
+        throw new Error("Link is required for link post type");
+    }
+    if (!validator.isURL(linkSubmission)) {
+        throw new Error("Link is not a valid URL");
+    }
+    return linkSubmission;
+}
+
 const postTypeValidator = (type, text, link, image) => {
     switch (type) { 
         case 'Text':
             return {
-              postType: "text",
-              textSubmission: parseTextSubmission(text),
+              postType: "Text",
+              textSubmisson: parseTextSubmission(text),
             };
         case 'Image':
             return {
-                postType: "image",
+                postType: "Image",
                 imageSubmission: parseImageSubmission(image),
+            }
+        case 'Link':
+            return {
+                postType: "Link",
+                linkSubmission: parseLinkSubmission(link),
             }
         default:
             throw new Error("Invalid post type please include a valid post type");
