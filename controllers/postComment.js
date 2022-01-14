@@ -137,5 +137,7 @@ const updateComment = async (req, res) => {
     await post.save();
     res.status(202).json({ message: `Comment updated.` }).end();
 };
+// post reply
+const postReply = async (req, res) => { };
 
-module.exports = { postComment, deleteComment, updateComment };
+module.exports = { postComment, deleteComment, updateComment, postReply };
