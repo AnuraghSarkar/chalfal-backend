@@ -197,6 +197,47 @@ const postReply = async (req, res) => {
   res.status(201).json(addedReply);
 };
 // delete reply
-const deleteReply = async (req, res) => { };
+const deleteReply = async (req, res) => {
+    const { id, commentId, replyId } = req.params;
+    // fetching post
+    const post = await Post.findById(id);
+    // fetching user
+    const user = await User.findById(req.user);
+    // Checking if post exists
+    if (!post) { 
+        return res.status(404).send({ message: `Post with ID:${id} not found.` });
+    }
+    // Checking if user exists
+    if (!user) {
+        return res.status(404).send({ message: `User not found.` });
+    }
+    // Targeting comment
+    const targetComment = post.comments.find((comment) => comment._id.toString() === commentId);
+    // Checking if comment exists
+    if (!targetComment) { 
+        return res.status(404).send({ message: `Comment with ID:${commentId} not found.` });
+    }
+    // Targeting reply
+    const targetReply = targetComment.replies.find((reply) => reply._id.toString() === replyId);
+    // Checking if reply exists
+    if (!targetReply) { 
+        return res.status(404).send({ message: `Reply with ID:${replyId} not found.` });
+    }
+    // Checking if user is the owner of the reply
+    if (targetReply.repliedBy.toString() !== user._id.toString()) { 
+        return res.status(401).send({ message: `You are not the owner of the reply.` });
+    }
+    // Removing reply
+    targetComment.replies = targetComment.replies.filter((reply) => reply._id.toString() !== replyId);
+    // Counting number of replies
+    post.comments = post.comments.map((comment) => { 
+        comment._id.toString() !== commentId ? comment : targetComment;
+    });
+    post.commentCount = numOfComments(post.comments);
+    // Saving post
+    await post.save();
+    // response
+    res.status(204).json({ message: `Reply deleted.` }).end();
+ };
 
 module.exports = { postComment, deleteComment, updateComment, postReply, deleteReply };
