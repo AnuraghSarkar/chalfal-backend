@@ -53,4 +53,7 @@ const upvoteComment = async (req, res) => {
     res.status(200).end();
 };
 
-module.exports = { upvoteComment };
+// downvote comment
+const downvoteComment = async (req, res) => { };
+
+module.exports = { upvoteComment, downvoteComment };
