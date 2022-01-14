@@ -7,6 +7,7 @@ const {
   createNewSubreddit,
   editSubDescription,
   deleteSubreddit,
+  subscribeToSubreddit,
 } = require("../controllers/subreddit");
 const router = express.Router();
 router.get("/", getSubreddits);
