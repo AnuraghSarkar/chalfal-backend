@@ -77,6 +77,24 @@ const downvoteComment = async (req, res) => {
     if (!commentAuthor) { 
         return res.status(404).send({ message: "Comment Author not found" });
     }
+    if (targetComment.downvotedBy.includes(user._id.toSring())) {
+        targetComment.downvotedBy = targetComment.downvotedBy.filter((d) => d.toString() !== user._id.toString());
+        commentAuthor.karmaPoints.commentKarma++;
+    }
+    else { 
+        targetComment.downvtedBy = targetComment.downvotedBy.concat(user._id);
+        targetComment.upvotedBy = targetComment.upvotedBy.filter((u) => u.toString() !== user._id.toString());
+        commentAuthor.karmaPoints.commentKarma--;
+    }
+    // points calculation
+    targetComment.pointsCount = targetComment.upvotedBy.length - targetComment.downvotedBy.length;
+    post.comments = post.comments.map((comment) => { 
+        comment._id.toString() !== commentId ? comment : targetComment;
+    });
+    // saving changes
+    await post.save();
+    await commentAuthor.save();
+    res.status(200).end();
 };
 
 module.exports = { upvoteComment, downvoteComment };
