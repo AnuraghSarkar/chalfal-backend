@@ -45,4 +45,6 @@ const postComment = async (req, res) => {
     res.status(201).json({addedComment});
 };
 
-module.exports = { postComment };
+const deleteComment = async (req, res) => { };
+
+module.exports = { postComment, deleteComment };
