@@ -152,10 +152,13 @@ const editSubDescription = async (req, res) => {
   res.status(200).end();
 };
 
+// being  subscribers
+const subscribeToSubreddit = async (req, res) => {};
 module.exports = {
   getSubreddits,
   getSubredditPosts,
   getTopSubreddits,
   createNewSubreddit,
   editSubDescription,
+  subscribeToSubreddit,
 };
