@@ -152,6 +152,34 @@ const editSubDescription = async (req, res) => {
   res.status(200).end();
 };
 
+// deleting a subreddit
+const deleteSubreddit = async (req, res) => {
+  const { id } = req.params;
+  // finding subreddit and admin
+  const subreddit = await Subreddit.findById(id);
+  const admin = await User.findById(req.user);
+  // checking if admin is empty
+  if (!admin) { 
+    return res.status(404).send({ message: "User not found" });
+  }
+  // checking if subreddit is empty
+  if (!subreddit) { 
+    return res
+      .status(404)
+      .send({ message: `Subreddit with id ${id} not found` });
+  }
+  // checking if admin is the owner of the subreddit
+  if (subreddit.admin.toString() !== admin._id.toString()) { 
+    return res
+      .status(403)
+      .send({ message: "You are not the owner of this subreddit" });
+  }
+  // deleting subreddit
+  await subreddit.remove();
+  // sending response
+  res.status(200).end();
+ };
+
 // being  subscribers
 const subscribeToSubreddit = async (req, res) => {
   const { id } = req.params;
