@@ -117,7 +117,40 @@ const createNewSubreddit = async (req, res) => {
   res.status(201).json(savedSubreddit);
 };
 // editing a subreddit
-const editSubDescription = async (req, res) => {};
+const editSubDescription = async (req, res) => {
+  const { description } = req.body;
+  const { id } = req.params;
+  // checking if description is empty
+  if (!description) {
+    return res.status(400).send({ message: "Description cannot be empty" });
+  }
+  // finding subreddit and admin
+  const subreddit = await Subreddit.findById(id);
+  const admin = await User.findById(req.user);
+  // checking if admin is empty
+  if (!admin) {
+    return res.status(404).send({ message: "User not found" });
+  }
+  // checking if subreddit is empty
+  if (!subreddit) {
+    return res
+      .status(404)
+      .send({ message: `Subreddit with id ${id} not found` });
+  }
+
+  // checking if admin is the owner of the subreddit
+  if (subreddit.admin.toString() !== admin._id.toString()) {
+    return res
+      .status(403)
+      .send({ message: "You are not the owner of this subreddit" });
+  }
+  // updating subreddit
+  subreddit.description = description;
+  await subreddit.save();
+
+  // sending response
+  res.status(200).end();
+};
 
 module.exports = {
   getSubreddits,
