@@ -48,5 +48,7 @@ const upvotePost = async (req, res) => {
   await author.save();
   res.status(201).end();
 };
+// downvote post
+const downvotePost = async (req, res) => { };
 
-module.exports = upvotePost;
+module.exports = {upvotePost, downvotePost};
