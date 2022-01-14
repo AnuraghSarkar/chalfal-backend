@@ -34,7 +34,7 @@ const loginUser = async (req, res) => {
   });
 };
 
-const signUpUser = async (req, res) => {
+const signupUser = async (req, res) => {
   const { username, password } = req.body;
   // Validate the form
   if (!username || !password) {
@@ -69,13 +69,13 @@ const signUpUser = async (req, res) => {
   };
   const token = jwt.sign(payload, SECRET);
   // Send the token
-  res
-    .status(200)
-    .json({
-      token,
-      username: savedUser.username,
-      id: savedUser._id,
-      avatar: savedUser.avatar,
-      karma: 0,
-    });
+  res.status(200).json({
+    token,
+    username: savedUser.username,
+    id: savedUser._id,
+    avatar: savedUser.avatar,
+    karma: 0,
+  });
 };
+
+module.exports = { loginUser, signupUser };

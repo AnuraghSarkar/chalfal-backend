@@ -130,141 +130,193 @@ const getPostAndComments = async (req, res) => {
     return res.status(404).send({
       message: `Post with the given ID ${id} was not found`,
     });
-    }
-    // Querying populated post
+  }
+  // Querying populated post
   const populatedPost = await post
     .populate("author", "username")
     .populate("subreddit", "subredditName")
     .populate("comments.commentedBy", "username")
     .populate("comments.replies.repliedBy", "username")
-        .execPopulate();
-    res.status(200).json(populatedPost);
+    .execPopulate();
+  res.status(200).json(populatedPost);
 };
 
 // Controller to create a new post
 const createNewPost = async (req, res) => {
-    const { title, subreddit, postType, textSubmission, imageSubmission, linkSubmission } = req.body;
-    
-    const validatedFields = postTypeValidator(postType, textSubmission, imageSubmission, linkSubmission);
-    const author = await User.findById(req.user);
-    const targetSubreddit = await Subreddit.findById(subreddit);
+  const {
+    title,
+    subreddit,
+    postType,
+    textSubmission,
+    imageSubmission,
+    linkSubmission,
+  } = req.body;
 
-    if (!author) {
-        return res.status(404).send({ message: "User not found" });
-    }
-    if (!targetSubreddit) {
-        return res.status(404).send({ message: `Subreddit not found with id ${subreddit}` });
-    }
-    const newPost = new Post({
-        title,
-        subreddit,
-        author: author._id,
-        upvotedBy: [author._id],
-        pointsCount: 1,
-        ...validatedFields,
-    });
+  const validatedFields = postTypeValidator(
+    postType,
+    textSubmission,
+    imageSubmission,
+    linkSubmission
+  );
+  const author = await User.findById(req.user);
+  const targetSubreddit = await Subreddit.findById(subreddit);
 
-    if (postType === 'Image') {
-        const uploadedImage = await cloudinary.uploader.upload(
-            imageSubmission,
-            {
-                upload_preset: UPLOAD_PRESET,
-            },
-            (error) => {
-                if (error) return res.status(401).send({ message: error.message });
-            }
-        );
-        newPost.imageSubmission = {
-            imageLink = uploadedImage.url,
-            imageId = uploadedImage.public_id,
-        }
-        
-    }
-    const savedPost = await newPost.save();
-    targetSubreddit.posts = targetSubreddit.posts.concat(savedPost._id);
-    await targetSubreddit.save();
+  if (!author) {
+    return res.status(404).send({ message: "User not found" });
+  }
+  if (!targetSubreddit) {
+    return res
+      .status(404)
+      .send({ message: `Subreddit not found with id ${subreddit}` });
+  }
+  const newPost = new Post({
+    title,
+    subreddit,
+    author: author._id,
+    upvotedBy: [author._id],
+    pointsCount: 1,
+    ...validatedFields,
+  });
 
-    author.posts = author.posts.concat(savedPost._id);
-    author.karmaPoints.postKarma++;
-    await author.save();
+  if (postType === "Image") {
+    const uploadedImage = await cloudinary.uploader.upload(
+      imageSubmission,
+      {
+        upload_preset: UPLOAD_PRESET,
+      },
+      (error) => {
+        if (error) return res.status(401).send({ message: error.message });
+      }
+    );
+    newPost.imageSubmission = {
+      imageLink: uploadedImage.url,
+      imageId: uploadedImage.public_id,
+    };
+  }
+  const savedPost = await newPost.save();
+  targetSubreddit.posts = targetSubreddit.posts.concat(savedPost._id);
+  await targetSubreddit.save();
 
-    const populatedPost = await savedPost.populate('author', 'username').populate('subreddit', 'subredditName').execPopulate();
-    res.status(201).json(populatedPost)
+  author.posts = author.posts.concat(savedPost._id);
+  author.karmaPoints.postKarma++;
+  await author.save();
+
+  const populatedPost = await savedPost
+    .populate("author", "username")
+    .populate("subreddit", "subredditName")
+    .execPopulate();
+  res.status(201).json(populatedPost);
 };
 
 // Controller to update a post
-const updatePost = async (req, res) => { 
-    const { id } = req.params;
-    const { textSubmission, imageSubmission, linkSubmission } = req.body;
-    const post = await Post.findById(id);
-    const author = await User.findById(req.user);
+const updatePost = async (req, res) => {
+  const { id } = req.params;
+  const { textSubmission, imageSubmission, linkSubmission } = req.body;
+  const post = await Post.findById(id);
+  const author = await User.findById(req.user);
 
-    if (!post) { 
-        return res.status(404).send({ message: `Post with the given ID ${id} was not found` });
-    }
-    if (!author) { 
-        return res.status(404).send({ message: "User not found" });
-    }
-    // Checking if the user is the author of the post
-    if (post.author.toString() !== author._id.toString()) { 
-        return res.status(401).send({ message: "You are not authorized to update this post" });
-    }
-    // validating the fields
-    const validatedFields = postTypeValidator(post.postType, textSubmission, imageSubmission, linkSubmission);
+  if (!post) {
+    return res
+      .status(404)
+      .send({ message: `Post with the given ID ${id} was not found` });
+  }
+  if (!author) {
+    return res.status(404).send({ message: "User not found" });
+  }
+  // Checking if the user is the author of the post
+  if (post.author.toString() !== author._id.toString()) {
+    return res
+      .status(401)
+      .send({ message: "You are not authorized to update this post" });
+  }
+  // validating the fields
+  const validatedFields = postTypeValidator(
+    post.postType,
+    textSubmission,
+    imageSubmission,
+    linkSubmission
+  );
 
-    // switching the post type
-    switch (post.postType) { 
-        case 'Text':
-            post.textSubmission = validatedFields.textSubmission;
-            break;
-        case 'Image':
-            const uploadedImage = await cloudinary.uploader.upload(imageSubmission, {
-                upload_preset: UPLOAD_PRESET,
-            }, (error) => { if (error) return res.status(401).send({ message: error.message }) })
-            post.imageSubmission = {
-                imageLink = uploadedImage.url,
-                imageId = uploadedImage.public_id,
-            }
-            break;
-        case 'Link':
-            post.linkSubmission = validatedFields.linkSubmission;
-            break;
-        default:
-            return res.status(403).send({ message: "Invalid post type" });
-    }
-    post.updatedAt = Date.now();
-    const savedPost = await post.save();
-    const populatedPost = await savedPost.populate('author', 'username').populate('subreddit', 'subredditName').populate('comments.commentedBy', 'username').populate('comments.replies.repliedBy', 'username').execPopulate();
-    res.status(202).json(populatedPost);
-}
+  // switching the post type
+  switch (post.postType) {
+    case "Text":
+      post.textSubmission = validatedFields.textSubmission;
+      break;
+    case "Image":
+      const uploadedImage = await cloudinary.uploader.upload(
+        imageSubmission,
+        {
+          upload_preset: UPLOAD_PRESET,
+        },
+        (error) => {
+          if (error) return res.status(401).send({ message: error.message });
+        }
+      );
+      post.imageSubmission = {
+        imageLink: uploadedImage.url,
+        imageId: uploadedImage.public_id,
+      };
+      break;
+    case "Link":
+      post.linkSubmission = validatedFields.linkSubmission;
+      break;
+    default:
+      return res.status(403).send({ message: "Invalid post type" });
+  }
+  post.updatedAt = Date.now();
+  const savedPost = await post.save();
+  const populatedPost = await savedPost
+    .populate("author", "username")
+    .populate("subreddit", "subredditName")
+    .populate("comments.commentedBy", "username")
+    .populate("comments.replies.repliedBy", "username")
+    .execPopulate();
+  res.status(202).json(populatedPost);
+};
 
-const deltePost = async (req, res) => {
-    const { id } = req.params;
-    const post = await Post.findById(id);
-    const author = await User.findById(req.user);
+const deletePost = async (req, res) => {
+  const { id } = req.params;
+  const post = await Post.findById(id);
+  const author = await User.findById(req.user);
 
-    if (!post) { 
-        return res.status(404).send({ message: `Post with the given ID ${id} was not found` });
-    }
-    if (!author) { 
-        return res.status(404).send({ message: "User not found" });
-    }
-    // Checking if the user is the author of the post
-    if (post.author.toString() !== author._id.toString()) { 
-        return res.status(401).send({ message: "You are not authorized to delete this post" });
-    }
-    const subreddit = await Subreddit.findById(post.subreddit);
-    if (!subreddit) { 
-        return res.status(404).send({ message: `Subreddit not found with id ${post.subreddit}` });
-    }
-    // Removing the post from the subreddit
-    await Post.findByIdAndDelete(id);
-    subreddit.posts = subreddit.posts.filter(postId => postId.toString() !== id);
-    await subreddit.save();
+  if (!post) {
+    return res
+      .status(404)
+      .send({ message: `Post with the given ID ${id} was not found` });
+  }
+  if (!author) {
+    return res.status(404).send({ message: "User not found" });
+  }
+  // Checking if the user is the author of the post
+  if (post.author.toString() !== author._id.toString()) {
+    return res
+      .status(401)
+      .send({ message: "You are not authorized to delete this post" });
+  }
+  const subreddit = await Subreddit.findById(post.subreddit);
+  if (!subreddit) {
+    return res
+      .status(404)
+      .send({ message: `Subreddit not found with id ${post.subreddit}` });
+  }
+  // Removing the post from the subreddit
+  await Post.findByIdAndDelete(id);
+  subreddit.posts = subreddit.posts.filter(
+    (postId) => postId.toString() !== id
+  );
+  await subreddit.save();
 
-    author.posts = author.posts.filter(postId => postId.toString() !== id);
-    await author.save();
-    res.status(204).end();
-}
+  author.posts = author.posts.filter((postId) => postId.toString() !== id);
+  await author.save();
+  res.status(204).end();
+};
 
-module.exports = { getPosts, getSuscribedPosts, getSearchedPosts, getPostAndComments, createNewPost, updatePost, deltePost };
+module.exports = {
+  getPosts,
+  getSuscribedPosts,
+  getSearchedPosts,
+  getPostAndComments,
+  createNewPost,
+  updatePost,
+  deletePost,
+};

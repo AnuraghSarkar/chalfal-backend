@@ -3,98 +3,285 @@ const User = require("../models/user");
 
 const upvoteComment = async (req, res) => {
   const { id, commentId } = req.params;
+
   const post = await Post.findById(id);
   const user = await User.findById(req.user);
-  // checking if user is empty
-  if (!user) {
-    return res.status(404).send({ message: "User not found" });
-  }
-  // checking if post is empty
+
   if (!post) {
-    return res.status(404).send({ message: `Post with id ${id} not found` });
+    return res.status(404).send({
+      message: `Post with ID: ${id} does not exist in database.`,
+    });
   }
-  // targetting comment
-  const targetComment = post.comments.find(
-    (comment) => comment._id.toString() === commentId.toString()
-  );
-  // checking if comment is empty
-  if (!targetComment) {
+
+  if (!user) {
     return res
       .status(404)
-      .send({ message: `Comment with id ${commentId} not found` });
+      .send({ message: "User does not exist in database." });
   }
-  // checking if user is the comment owner
+
+  const targetComment = post.comments.find(
+    (c) => c._id.toString() === commentId
+  );
+
+  if (!targetComment) {
+    return res.status(404).send({
+      message: `Comment with ID: '${commentId}'  does not exist in database.`,
+    });
+  }
+
   const commentAuthor = await User.findById(targetComment.commentedBy);
+
   if (!commentAuthor) {
-    return res.status(404).send({ message: "Comment Author not found" });
+    return res
+      .status(404)
+      .send({ message: "Comment author does not exist in database." });
   }
-  if (targetComment.upvotedBy.includes(user._id.toSring())) {
+
+  if (targetComment.upvotedBy.includes(user._id.toString())) {
     targetComment.upvotedBy = targetComment.upvotedBy.filter(
-      (upvotedBy) => upvotedBy.toString() !== user._id.toString()
+      (u) => u.toString() !== user._id.toString()
     );
+
     commentAuthor.karmaPoints.commentKarma--;
   } else {
     targetComment.upvotedBy = targetComment.upvotedBy.concat(user._id);
     targetComment.downvotedBy = targetComment.downvotedBy.filter(
       (d) => d.toString() !== user._id.toString()
     );
+
     commentAuthor.karmaPoints.commentKarma++;
   }
 
-  // points calculation
   targetComment.pointsCount =
     targetComment.upvotedBy.length - targetComment.downvotedBy.length;
-  post.comments = post.comments.map((comment) => {
-    comment._id.toString() !== commentId ? comment : targetComment;
-  });
-    // saving changes
-    await post.save();
-    await commentAuthor.save();
-    res.status(200).end();
+
+  post.comments = post.comments.map((c) =>
+    c._id.toString() !== commentId ? c : targetComment
+  );
+
+  await post.save();
+  await commentAuthor.save();
+
+  res.status(201).end();
 };
 
-// downvote comment
-const downvoteComment = async (req, res) => { 
-    const { id, commentId } = req.params;
-    const post = await Post.findById(id);
-    const user = await User.findById(req.user);
-    // checking if user is empty
-    if (!user) { 
-        return res.status(404).send({ message: "User not found" });
-    }
-    // checking if post is empty
-    if (!post) { 
-        return res.status(404).send({ message: `Post with id ${id} not found` });
-    }
-    // targetting comment
-    const targetComment = post.comments.find((comment) => comment._id.toString() === commentId.toString());
-    // checking if comment is empty
-    if (!targetComment) { 
-        return res.status(404).send({ message: `Comment with id ${commentId} not found` });
-    }
-    // checking if user is the comment owner
-    const commentAuthor = await User.findById(targetComment.commentedBy);
-    if (!commentAuthor) { 
-        return res.status(404).send({ message: "Comment Author not found" });
-    }
-    if (targetComment.downvotedBy.includes(user._id.toSring())) {
-        targetComment.downvotedBy = targetComment.downvotedBy.filter((d) => d.toString() !== user._id.toString());
-        commentAuthor.karmaPoints.commentKarma++;
-    }
-    else { 
-        targetComment.downvtedBy = targetComment.downvotedBy.concat(user._id);
-        targetComment.upvotedBy = targetComment.upvotedBy.filter((u) => u.toString() !== user._id.toString());
-        commentAuthor.karmaPoints.commentKarma--;
-    }
-    // points calculation
-    targetComment.pointsCount = targetComment.upvotedBy.length - targetComment.downvotedBy.length;
-    post.comments = post.comments.map((comment) => { 
-        comment._id.toString() !== commentId ? comment : targetComment;
+const downvoteComment = async (req, res) => {
+  const { id, commentId } = req.params;
+
+  const post = await Post.findById(id);
+  const user = await User.findById(req.user);
+
+  if (!post) {
+    return res.status(404).send({
+      message: `Post with ID: ${id} does not exist in database.`,
     });
-    // saving changes
-    await post.save();
-    await commentAuthor.save();
-    res.status(200).end();
+  }
+
+  if (!user) {
+    return res
+      .status(404)
+      .send({ message: "User does not exist in database." });
+  }
+
+  const targetComment = post.comments.find(
+    (c) => c._id.toString() === commentId
+  );
+
+  if (!targetComment) {
+    return res.status(404).send({
+      message: `Comment with ID: '${commentId}'  does not exist in database.`,
+    });
+  }
+
+  const commentAuthor = await User.findById(targetComment.commentedBy);
+
+  if (!commentAuthor) {
+    return res
+      .status(404)
+      .send({ message: "Comment author does not exist in database." });
+  }
+
+  if (targetComment.downvotedBy.includes(user._id.toString())) {
+    targetComment.downvotedBy = targetComment.downvotedBy.filter(
+      (d) => d.toString() !== user._id.toString()
+    );
+
+    commentAuthor.karmaPoints.commentKarma++;
+  } else {
+    targetComment.downvotedBy = targetComment.downvotedBy.concat(user._id);
+    targetComment.upvotedBy = targetComment.upvotedBy.filter(
+      (u) => u.toString() !== user._id.toString()
+    );
+
+    commentAuthor.karmaPoints.commentKarma--;
+  }
+
+  targetComment.pointsCount =
+    targetComment.upvotedBy.length - targetComment.downvotedBy.length;
+
+  post.comments = post.comments.map((c) =>
+    c._id.toString() !== commentId ? c : targetComment
+  );
+
+  await post.save();
+  await commentAuthor.save();
+
+  res.status(201).end();
 };
 
-module.exports = { upvoteComment, downvoteComment };
+const upvoteReply = async (req, res) => {
+  const { id, commentId, replyId } = req.params;
+
+  const post = await Post.findById(id);
+  const user = await User.findById(req.user);
+
+  if (!post) {
+    return res.status(404).send({
+      message: `Post with ID: ${id} does not exist in database.`,
+    });
+  }
+
+  if (!user) {
+    return res
+      .status(404)
+      .send({ message: "User does not exist in database." });
+  }
+
+  const targetComment = post.comments.find(
+    (c) => c._id.toString() === commentId
+  );
+
+  if (!targetComment) {
+    return res.status(404).send({
+      message: `Comment with ID: '${commentId}'  does not exist in database.`,
+    });
+  }
+
+  const targetReply = targetComment.replies.find(
+    (r) => r._id.toString() === replyId
+  );
+
+  if (!targetReply) {
+    return res.status(404).send({
+      message: `Reply comment with ID: '${replyId}'  does not exist in database.`,
+    });
+  }
+
+  const replyAuthor = await User.findById(targetReply.repliedBy);
+
+  if (!replyAuthor) {
+    return res
+      .status(404)
+      .send({ message: "Reply author does not exist in database." });
+  }
+
+  if (targetReply.upvotedBy.includes(user._id.toString())) {
+    targetReply.upvotedBy = targetReply.upvotedBy.filter(
+      (u) => u.toString() !== user._id.toString()
+    );
+
+    replyAuthor.karmaPoints.commentKarma--;
+  } else {
+    targetReply.upvotedBy = targetReply.upvotedBy.concat(user._id);
+    targetReply.downvotedBy = targetReply.downvotedBy.filter(
+      (d) => d.toString() !== user._id.toString()
+    );
+
+    replyAuthor.karmaPoints.commentKarma++;
+  }
+
+  targetReply.pointsCount =
+    targetReply.upvotedBy.length - targetReply.downvotedBy.length;
+
+  targetComment.replies = targetComment.replies.map((r) =>
+    r._id.toString() !== replyId ? r : targetReply
+  );
+
+  post.comments = post.comments.map((c) =>
+    c._id.toString() !== commentId ? c : targetComment
+  );
+
+  await post.save();
+  await replyAuthor.save();
+
+  res.status(201).end();
+};
+const downvoteReply = async (req, res) => {
+  const { id, commentId, replyId } = req.params;
+
+  const post = await Post.findById(id);
+  const user = await User.findById(req.user);
+
+  if (!post) {
+    return res.status(404).send({
+      message: `Post with ID: ${id} does not exist in database.`,
+    });
+  }
+
+  if (!user) {
+    return res
+      .status(404)
+      .send({ message: "User does not exist in database." });
+  }
+
+  const targetComment = post.comments.find(
+    (c) => c._id.toString() === commentId
+  );
+
+  if (!targetComment) {
+    return res.status(404).send({
+      message: `Comment with ID: '${commentId}'  does not exist in database.`,
+    });
+  }
+
+  const targetReply = targetComment.replies.find(
+    (r) => r._id.toString() === replyId
+  );
+
+  if (!targetReply) {
+    return res.status(404).send({
+      message: `Reply comment with ID: '${replyId}'  does not exist in database.`,
+    });
+  }
+
+  const replyAuthor = await User.findById(targetReply.repliedBy);
+
+  if (!replyAuthor) {
+    return res
+      .status(404)
+      .send({ message: "Reply author does not exist in database." });
+  }
+
+  if (targetReply.downvotedBy.includes(user._id.toString())) {
+    targetReply.downvotedBy = targetReply.downvotedBy.filter(
+      (d) => d.toString() !== user._id.toString()
+    );
+
+    replyAuthor.karmaPoints.commentKarma++;
+  } else {
+    targetReply.downvotedBy = targetReply.downvotedBy.concat(user._id);
+    targetReply.upvotedBy = targetReply.upvotedBy.filter(
+      (u) => u.toString() !== user._id.toString()
+    );
+
+    replyAuthor.karmaPoints.commentKarma--;
+  }
+
+  targetReply.pointsCount =
+    targetReply.upvotedBy.length - targetReply.downvotedBy.length;
+
+  targetComment.replies = targetComment.replies.map((r) =>
+    r._id.toString() !== replyId ? r : targetReply
+  );
+
+  post.comments = post.comments.map((c) =>
+    c._id.toString() !== commentId ? c : targetComment
+  );
+
+  await post.save();
+  await replyAuthor.save();
+
+  res.status(201).end();
+};
+
+module.exports = { upvoteComment, downvoteComment, upvoteReply, downvoteReply };

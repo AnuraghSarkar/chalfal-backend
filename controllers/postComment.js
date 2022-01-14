@@ -1,6 +1,6 @@
 const Post = require("../models/post");
 const User = require("../models/user");
-const numOfComments = require("../models/numOfComments");
+const numOfComments = require("../utils/numOfComments");
 
 const postComment = async (req, res) => {
   const { id } = req.params;
