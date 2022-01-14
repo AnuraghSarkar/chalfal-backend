@@ -153,7 +153,36 @@ const editSubDescription = async (req, res) => {
 };
 
 // being  subscribers
-const subscribeToSubreddit = async (req, res) => {};
+const subscribeToSubreddit = async (req, res) => {
+  const { id } = req.params;
+  const subreddit = await Subreddit.findById(id);
+  const user = await User.findById(req.user);
+  // checking if user is empty
+  if (!user) {
+    return res.status(404).send({ message: "User not found" });
+  }
+  // checking if subreddit is already subscribed
+  if (subreddit.subscribedBy.includes(user._id.toString())) {
+    subreddit.subscribedBy = subreddit.subscribedBy.filter(
+      (s) => s.toString() !== user._id.toString()
+    );
+
+    user.subscribedSubs = user.subscribedSubs.filter(
+      (s) => s.toString() !== subreddit._id.toString()
+    );
+  } else {
+    subreddit.subscribedBy = subreddit.subscribedBy.concat(user._id);
+
+    user.subscribedSubs = user.subscribedSubs.concat(subreddit._id);
+  }
+
+  subreddit.subscriberCount = subreddit.subscribedBy.length;
+
+  await subreddit.save();
+  await user.save();
+
+  res.status(201).end();
+};
 module.exports = {
   getSubreddits,
   getSubredditPosts,
