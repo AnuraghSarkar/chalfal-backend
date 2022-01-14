@@ -37,7 +37,7 @@ const getUser = async (req, res) => {
   res.status(200).json({ userDetails: user, posts: paginatedPosts });
 };
 
-const setuserAvatar = async (req, res) => {
+const setUserAvatar = async (req, res) => {
   const { avatarImage } = req.body;
 
   if (!avatarImage) {
@@ -74,7 +74,7 @@ const setuserAvatar = async (req, res) => {
   res.status(201).json({ avatar: savedUser.avatar });
 };
 
-const removeuserAvatar = async (req, res) => {
+const removeUserAvatar = async (req, res) => {
   const user = await User.findById(req.user);
 
   if (!user) {
@@ -93,4 +93,4 @@ const removeuserAvatar = async (req, res) => {
   res.status(204).end();
 };
 
-module.exports = { getUser, setuserAvatar, removeuserAvatar };
+module.exports = { getUser, setUserAvatar, removeUserAvatar };
