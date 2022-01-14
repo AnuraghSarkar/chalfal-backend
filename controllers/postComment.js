@@ -6,310 +6,307 @@ const postComment = async (req, res) => {
   const { id } = req.params;
   const { comment } = req.body;
 
-  // Checking if comment is empty
   if (!comment) {
-    return res.status(400).send({ message: `Comment can't be empty.` });
+    return res.status(400).send({ message: `Comment body can't be empty.` });
   }
 
-  // fetching post
   const post = await Post.findById(id);
-  // fetching user
   const user = await User.findById(req.user);
-  // Checking if post exists
+
   if (!post) {
-    return res.status(404).send({ message: `Post with ID:${id} not found.` });
-  }
-  // Checking if user exists
-  if (!user) {
-    return res.status(404).send({ message: `User not found.` });
+    return res.status(404).send({
+      message: `Post with ID: ${id} does not exist in database.`,
+    });
   }
 
-  // Creating comment
+  if (!user) {
+    return res
+      .status(404)
+      .send({ message: "User does not exist in database." });
+  }
+
   post.comments = post.comments.concat({
     commentedBy: user._id,
     commentBody: comment,
     upvotedBy: [user._id],
     pointsCount: 1,
   });
-  // Counting number of comments
   post.commentCount = numOfComments(post.comments);
-  // Saving post\
   const savedPost = await post.save();
-  // Populating post with user
   const populatedPost = await savedPost
     .populate("comments.commentedBy", "username")
     .execPopulate();
-  // Couting karma
+
   user.karmaPoints.commentKarma++;
+  user.totalComments++;
   await user.save();
-  // Sending response
+
   const addedComment = populatedPost.comments[savedPost.comments.length - 1];
-  res.status(201).json({ addedComment });
+  res.status(201).json(addedComment);
 };
 
 const deleteComment = async (req, res) => {
   const { id, commentId } = req.params;
-  // fetching post
+
   const post = await Post.findById(id);
-  // fetching user
   const user = await User.findById(req.user);
-  // Checking if post exists
+
   if (!post) {
-    return res.status(404).send({ message: `Post with ID:${id} not found.` });
+    return res.status(404).send({
+      message: `Post with ID: ${id} does not exist in database.`,
+    });
   }
-  // Checking if user exists
+
   if (!user) {
-    return res.status(404).send({ message: `User not found.` });
-  }
-  // Targeting comment
-  const targetComment = post.comments.find(
-    (comment) => comment._id.toString() === commentId
-  );
-  // Checking if comment exists
-  if (!targetComment) {
     return res
       .status(404)
-      .send({ message: `Comment with ID:${commentId} not found.` });
+      .send({ message: "User does not exist in database." });
   }
-  // Checking if user is the owner of the comment
-  if (targetComment.commentedBy.toString() !== user._id.toString()) {
-    return res
-      .status(401)
-      .send({ message: `You are not the owner of the comment.` });
-  }
-  // Removing comment
-  post.comments = post.comments.filter(
-    (comment) => comment._id.toString() !== commentId
+
+  const targetComment = post.comments.find(
+    (c) => c._id.toString() === commentId
   );
-  // Counting number of comments
+
+  if (!targetComment) {
+    return res.status(404).send({
+      message: `Comment with ID: '${commentId}'  does not exist in database.`,
+    });
+  }
+
+  if (targetComment.commentedBy.toString() !== user._id.toString()) {
+    return res.status(401).send({ message: "Access is denied." });
+  }
+
+  post.comments = post.comments.filter((c) => c._id.toString() !== commentId);
   post.commentCount = numOfComments(post.comments);
-  // Saving post
+
   await post.save();
-  res
-    .status(204)
-    .json({ message: `Comment with ID:${commentId} deleted.` })
-    .end();
+  res.status(204).end();
 };
 
-// updating comment
 const updateComment = async (req, res) => {
   const { id, commentId } = req.params;
   const { comment } = req.body;
-  // validating comment
+
   if (!comment) {
-    return res.status(400).send({ message: `Comment can't be empty.` });
+    return res.status(400).send({ message: `Comment body can't be empty.` });
   }
-  // fetching post
+
   const post = await Post.findById(id);
-  // fetching user
   const user = await User.findById(req.user);
-  // Checking if post exists
+
   if (!post) {
-    return res.status(404).send({ message: `Post with ID:${id} not found.` });
+    return res.status(404).send({
+      message: `Post with ID: ${id} does not exist in database.`,
+    });
   }
-  // Checking if user exists
+
   if (!user) {
-    return res.status(404).send({ message: `User not found.` });
-  }
-  // Targeting comment
-  const targetComment = post.comments.find(
-    (comment) => comment._id.toString() === commentId
-  );
-  // Checking if comment exists
-  if (!targetComment) {
     return res
       .status(404)
-      .send({ message: `Comment with ID:${commentId} not found.` });
+      .send({ message: "User does not exist in database." });
   }
-  // Checking if user is the owner of the comment
+
+  const targetComment = post.comments.find(
+    (c) => c._id.toString() === commentId
+  );
+
+  if (!targetComment) {
+    return res.status(404).send({
+      message: `Comment with ID: '${commentId}'  does not exist in database.`,
+    });
+  }
+
   if (targetComment.commentedBy.toString() !== user._id.toString()) {
-    return res
-      .status(401)
-      .send({ message: `You are not the owner of the comment.` });
+    return res.status(401).send({ message: "Access is denied." });
   }
-  // Updating comment
+
   targetComment.commentBody = comment;
   targetComment.updatedAt = Date.now();
-  // Saving post
-  post.comments = post.comments.map((comment) => {
-    comment._id.toString() !== commentId ? comment : targetComment;
-  });
+
+  post.comments = post.comments.map((c) =>
+    c._id.toString() !== commentId ? c : targetComment
+  );
+
   await post.save();
-  res.status(202).json({ message: `Comment updated.` }).end();
+  res.status(202).end();
 };
-// post reply
+
 const postReply = async (req, res) => {
   const { id, commentId } = req.params;
   const { reply } = req.body;
-  // validating reply
+
   if (!reply) {
-    return res.status(400).send({ message: `Reply can't be empty.` });
+    return res.status(400).send({ message: `Reply body can't be empty.` });
   }
-  // fetching post
+
   const post = await Post.findById(id);
-  // fetching user
   const user = await User.findById(req.user);
-  // Checking if post exists
+
   if (!post) {
-    return res.status(404).send({ message: `Post with ID:${id} not found.` });
+    return res.status(404).send({
+      message: `Post with ID: ${id} does not exist in database.`,
+    });
   }
-  // Checking if user exists
+
   if (!user) {
-    return res.status(404).send({ message: `User not found.` });
-  }
-  // Targeting comment
-  const targetComment = post.comments.find(
-    (comment) => comment._id.toString() === commentId
-  );
-  // Checking if comment exists
-  if (!targetComment) {
     return res
       .status(404)
-      .send({ message: `Comment with ID:${commentId} not found.` });
+      .send({ message: "User does not exist in database." });
   }
-  //    repllies of target comment
+
+  const targetComment = post.comments.find(
+    (c) => c._id.toString() === commentId
+  );
+
+  if (!targetComment) {
+    return res.status(404).send({
+      message: `Comment with ID: '${commentId}'  does not exist in database.`,
+    });
+  }
+
   targetComment.replies = targetComment.replies.concat({
     replyBody: reply,
     repliedBy: user._id,
     upvotedBy: [user._id],
     pointsCount: 1,
   });
-  // Counting number of replies
-  post.comments = post.comments.map((comment) => {
-    comment._id.toString() !== commentId ? comment : targetComment;
-  });
+
+  post.comments = post.comments.map((c) =>
+    c._id.toString() !== commentId ? c : targetComment
+  );
   post.commentCount = numOfComments(post.comments);
-  // Saving post
   const savedPost = await post.save();
-  // Populating post with user
   const populatedPost = await savedPost
     .populate("comments.replies.repliedBy", "username")
     .execPopulate();
-  // Couting karma
+
   user.karmaPoints.commentKarma++;
   user.totalComments++;
   await user.save();
-  // Sending response
+
   const commentToReply = populatedPost.comments.find(
-    (comment) => comment._id.toString() === commentId
+    (c) => c._id.toString() === commentId
   );
+
   const addedReply = commentToReply.replies[commentToReply.replies.length - 1];
   res.status(201).json(addedReply);
 };
-// delete reply
+
 const deleteReply = async (req, res) => {
   const { id, commentId, replyId } = req.params;
-  // fetching post
+
   const post = await Post.findById(id);
-  // fetching user
   const user = await User.findById(req.user);
-  // Checking if post exists
+
   if (!post) {
-    return res.status(404).send({ message: `Post with ID:${id} not found.` });
+    return res.status(404).send({
+      message: `Post with ID: ${id} does not exist in database.`,
+    });
   }
-  // Checking if user exists
+
   if (!user) {
-    return res.status(404).send({ message: `User not found.` });
+    return res
+      .status(404)
+      .send({ message: "User does not exist in database." });
   }
-  // Targeting comment
+
   const targetComment = post.comments.find(
-    (comment) => comment._id.toString() === commentId
+    (c) => c._id.toString() === commentId
   );
-  // Checking if comment exists
+
   if (!targetComment) {
-    return res
-      .status(404)
-      .send({ message: `Comment with ID:${commentId} not found.` });
+    return res.status(404).send({
+      message: `Comment with ID: '${commentId}'  does not exist in database.`,
+    });
   }
-  // Targeting reply
+
   const targetReply = targetComment.replies.find(
-    (reply) => reply._id.toString() === replyId
+    (r) => r._id.toString() === replyId
   );
-  // Checking if reply exists
+
   if (!targetReply) {
-    return res
-      .status(404)
-      .send({ message: `Reply with ID:${replyId} not found.` });
+    return res.status(404).send({
+      message: `Reply comment with ID: '${replyId}'  does not exist in database.`,
+    });
   }
-  // Checking if user is the owner of the reply
+
   if (targetReply.repliedBy.toString() !== user._id.toString()) {
-    return res
-      .status(401)
-      .send({ message: `You are not the owner of the reply.` });
+    return res.status(401).send({ message: "Access is denied." });
   }
-  // Removing reply
+
   targetComment.replies = targetComment.replies.filter(
-    (reply) => reply._id.toString() !== replyId
+    (r) => r._id.toString() !== replyId
   );
-  // Counting number of replies
-  post.comments = post.comments.map((comment) => {
-    comment._id.toString() !== commentId ? comment : targetComment;
-  });
+
+  post.comments = post.comments.map((c) =>
+    c._id.toString() !== commentId ? c : targetComment
+  );
   post.commentCount = numOfComments(post.comments);
-  // Saving post
+
   await post.save();
-  // response
-  res.status(204).json({ message: `Reply deleted.` }).end();
+  res.status(204).end();
 };
-//  update reply
 const updateReply = async (req, res) => {
   const { id, commentId, replyId } = req.params;
   const { reply } = req.body;
-  // validating reply
+
   if (!reply) {
-    return res.status(400).send({ message: `Reply can't be empty.` });
+    return res.status(400).send({ message: `Reply body can't be empty.` });
   }
-  // fetching post
+
   const post = await Post.findById(id);
-  // fetching user
   const user = await User.findById(req.user);
-  // Checking if post exists
+
   if (!post) {
-    return res.status(404).send({ message: `Post with ID:${id} not found.` });
+    return res.status(404).send({
+      message: `Post with ID: ${id} does not exist in database.`,
+    });
   }
-  // Checking if user exists
+
   if (!user) {
-    return res.status(404).send({ message: `User not found.` });
+    return res
+      .status(404)
+      .send({ message: "User does not exist in database." });
   }
-  // Targeting comment
+
   const targetComment = post.comments.find(
-    (comment) => comment._id.toString() === commentId
+    (c) => c._id.toString() === commentId
   );
-  // Checking if comment exists
+
   if (!targetComment) {
-    return res
-      .status(404)
-      .send({ message: `Comment with ID:${commentId} not found.` });
+    return res.status(404).send({
+      message: `Comment with ID: '${commentId}'  does not exist in database.`,
+    });
   }
-  // Targeting reply
+
   const targetReply = targetComment.replies.find(
-    (reply) => reply._id.toString() === replyId
+    (r) => r._id.toString() === replyId
   );
-  // Checking if reply exists
+
   if (!targetReply) {
-    return res
-      .status(404)
-      .send({ message: `Reply with ID:${replyId} not found.` });
+    return res.status(404).send({
+      message: `Reply comment with ID: '${replyId}'  does not exist in database.`,
+    });
   }
-  // Checking if user is the owner of the reply
+
   if (targetReply.repliedBy.toString() !== user._id.toString()) {
-    return res
-      .status(401)
-      .send({ message: `You are not the owner of the reply.` });
+    return res.status(401).send({ message: "Access is denied." });
   }
-  // Updating reply
+
   targetReply.replyBody = reply;
   targetReply.updatedAt = Date.now();
-  // Saving post
-  targetComment.replies = targetComment.replies.map((reply) => {
-    reply._id.toString() !== replyId ? reply : targetReply;
-  });
-  post.comments = post.comments.map((comment) => {
-    comment._id.toString() !== commentId ? comment : targetComment;
-  });
+
+  targetComment.replies = targetComment.replies.map((r) =>
+    r._id.toString() !== replyId ? r : targetReply
+  );
+
+  post.comments = post.comments.map((c) =>
+    c._id.toString() !== commentId ? c : targetComment
+  );
+
   await post.save();
-  // response
-  res.status(200).end();
+  res.status(202).end();
 };
 
 module.exports = {
