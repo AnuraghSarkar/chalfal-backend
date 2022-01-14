@@ -1,11 +1,12 @@
 const schemaCleaner = (schema) => {
   schema.set("toJSON", {
-    transform: (doc, ret, options) => {
-      ret.id = ret._id.toString();
-      delete ret.__v;
-      delete ret._id;
-      delete ret.passwordHash;
+    transform: (_document, returnedObject) => {
+      returnedObject.id = returnedObject._id.toString();
+      delete returnedObject._id;
+      delete returnedObject.__v;
+      delete returnedObject.passwordHash;
     },
   });
 };
+
 module.exports = schemaCleaner;

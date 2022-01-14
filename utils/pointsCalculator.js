@@ -6,17 +6,23 @@ const pointsCalculator = (upvotes, downvotes, createdDate) => {
     result.pointsCount = 0;
   } else {
     result.pointsCount = points;
-    }
-    
-    const voteRatio = (upvotes / downvotes);
-    if (!isFinite(voteRatio)) {
-        result.voteRatio = 1;
-    } else { 
-        results.voteRatio = voteRatio;
-    }
-    result.hotAlgorithm = Math.log(Math.max(Math.abs(points), 1)) + createdDate / 4500;
-    result.controversialAlgorithm = (upvotes + downvotes) / Math.max(Math.abs(points), 1);
-    return result;
+  }
+
+  const voteRatio = upvotes / downvotes;
+
+  if (!isFinite(voteRatio)) {
+    result.voteRatio = 1;
+  } else {
+    result.voteRatio = voteRatio;
+  }
+
+  result.hotAlgo =
+    Math.log(Math.max(Math.abs(upvotes - downvotes), 1)) + createdDate / 4500;
+
+  result.controversialAlgo =
+    (upvotes + downvotes) / Math.max(Math.abs(upvotes - downvotes), 1);
+
+  return result;
 };
 
 module.exports = pointsCalculator;
