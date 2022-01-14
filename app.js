@@ -1,34 +1,24 @@
-import dotenv from "dotenv";
-dotenv.config();
+const express = require("express");
+require("express-async-errors");
+const cors = require("cors");
+const middleware = require("./utils/middleware");
+const authRoutes = require("./routes/auth");
+const postRoutes = require("./routes/post");
+const subredditRoutes = require("./routes/subreddit");
+const userRoutes = require("./routes/user");
 
-import express from "express";
-import cors from "cors";
-import cookieParser from "cookie-parser";
-import routes from "./routes/url";
-import bodyParser from "body-parser";
-import dbConnection from "./config/dbConnection";
 const app = express();
 
+app.use(cors());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
-app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
-);
+app.use("/api", authRoutes);
+app.use("/api/posts", postRoutes);
+app.use("/api/subreddits", subredditRoutes);
+app.use("/api/users", userRoutes);
 
-// Connect to MongoDB
-dbConnection;
+app.use(middleware.unknownEndpointHandler);
+app.use(middleware.errorHandler);
 
-
-app.use(routes);
-
-app.get("/", (req, res) => {
-  res.send("ok");
-});
-const server = app.listen(process.env.PORT, () => {
-  console.log(`Server is running on port ${process.env.PORT}`);
-});
+module.exports = app;

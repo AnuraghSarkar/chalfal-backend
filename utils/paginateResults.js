@@ -4,11 +4,24 @@ const paginateResults = (page, limit, docCount) => {
   const results = {};
 
   if (endIndex < docCount) {
-    results.next = { page: page + 1, limit };
+    results.next = {
+      page: page + 1,
+      limit,
+    };
   }
+
   if (startIndex > 0) {
-    results.previous = { page: page - 1, limit };
+    results.previous = {
+      page: page - 1,
+      limit,
+    };
   }
-  return { startIndex, endIndex, results };
+
+  return {
+    startIndex,
+    endIndex,
+    results,
+  };
 };
+
 module.exports = paginateResults;
