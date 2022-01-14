@@ -196,5 +196,7 @@ const postReply = async (req, res) => {
   const addedReply = commentToReply.replies[commentToReply.replies.length - 1];
   res.status(201).json(addedReply);
 };
+// delete reply
+const deleteReply = async (req, res) => { };
 
-module.exports = { postComment, deleteComment, updateComment, postReply };
+module.exports = { postComment, deleteComment, updateComment, postReply, deleteReply };
