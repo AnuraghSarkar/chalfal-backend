@@ -238,6 +238,8 @@ const deleteReply = async (req, res) => {
     await post.save();
     // response
     res.status(204).json({ message: `Reply deleted.` }).end();
- };
+};
+//  update reply
+const updateReply = async (req, res) => { };
 
-module.exports = { postComment, deleteComment, updateComment, postReply, deleteReply };
+module.exports = { postComment, deleteComment, updateComment, postReply, deleteReply, updateReply };
