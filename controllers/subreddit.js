@@ -83,6 +83,45 @@ const getTopSubreddits = async (_req, res) => {
 };
 
 // creating a new subreddit
-const createNewSubreddit = async (req, res) => { };
+const createNewSubreddit = async (req, res) => {
+  const { subredditName, description } = req.body;
+  const admin = await User.findById(req.user);
+  // checking if user already exists
+  if (!admin) {
+    return res.status(404).send({ message: "User not found" });
+  }
+  // checking if subreddit already exists
+  const existingSubName = await Subreddit.findOne({
+    subredditName: { $regex: new RegExp("^" + subredditName + "$", "i") },
+  });
+  // if subreddit exists
+  if (existingSubName) {
+    return res
+      .status(400)
+      .send({
+        message: `Subreddit named ${subredditName} already exists. Please choose another name.`,
+      });
+  }
+  // creating new subreddit
+  const newSubreddit = new Subreddit({
+    subredditName,
+    description,
+    admin: admin._id,
+    suscribedBy: [admin._id],
+    subscriberCount: 1,
+  });
+    // saving new subreddit
+    const savedSubreddit = await newSubreddit.save();
+    // adding admin as a suscribed user
+    admin.subscribedSubs = admin.subscribedSubs.concat(savedSubreddit._id);
+    await admin.save();
+    // sending response
+    res.status(201).json(savedSubreddit);
+};
 
-module.exports = { getSubreddits, getSubredditPosts, getTopSubreddits, createNewSubreddit };
+module.exports = {
+  getSubreddits,
+  getSubredditPosts,
+  getTopSubreddits,
+  createNewSubreddit,
+};
