@@ -40,6 +40,17 @@ const upvoteComment = async (req, res) => {
     );
     commentAuthor.karmaPoints.commentKarma++;
   }
+
+  // points calculation
+  targetComment.pointsCount =
+    targetComment.upvotedBy.length - targetComment.downvotedBy.length;
+  post.comments = post.comments.map((comment) => {
+    comment._id.toString() !== commentId ? comment : targetComment;
+  });
+    // saving changes
+    await post.save();
+    await commentAuthor.save();
+    res.status(200).end();
 };
 
 module.exports = { upvoteComment };
