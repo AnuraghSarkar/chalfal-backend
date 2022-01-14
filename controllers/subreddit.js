@@ -96,11 +96,9 @@ const createNewSubreddit = async (req, res) => {
   });
   // if subreddit exists
   if (existingSubName) {
-    return res
-      .status(400)
-      .send({
-        message: `Subreddit named ${subredditName} already exists. Please choose another name.`,
-      });
+    return res.status(400).send({
+      message: `Subreddit named ${subredditName} already exists. Please choose another name.`,
+    });
   }
   // creating new subreddit
   const newSubreddit = new Subreddit({
@@ -110,18 +108,21 @@ const createNewSubreddit = async (req, res) => {
     suscribedBy: [admin._id],
     subscriberCount: 1,
   });
-    // saving new subreddit
-    const savedSubreddit = await newSubreddit.save();
-    // adding admin as a suscribed user
-    admin.subscribedSubs = admin.subscribedSubs.concat(savedSubreddit._id);
-    await admin.save();
-    // sending response
-    res.status(201).json(savedSubreddit);
+  // saving new subreddit
+  const savedSubreddit = await newSubreddit.save();
+  // adding admin as a suscribed user
+  admin.subscribedSubs = admin.subscribedSubs.concat(savedSubreddit._id);
+  await admin.save();
+  // sending response
+  res.status(201).json(savedSubreddit);
 };
+// editing a subreddit
+const editSubDescription = async (req, res) => {};
 
 module.exports = {
   getSubreddits,
   getSubredditPosts,
   getTopSubreddits,
   createNewSubreddit,
+  editSubDescription,
 };
