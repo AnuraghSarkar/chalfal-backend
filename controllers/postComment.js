@@ -78,4 +78,7 @@ const deleteComment = async (req, res) => {
     res.status(204).json({message: `Comment with ID:${commentId} deleted.`}).end();
 };
 
-module.exports = { postComment, deleteComment };
+// updating comment
+const updateComment = async (req, res) => { };
+
+module.exports = { postComment, deleteComment, updateComment };
