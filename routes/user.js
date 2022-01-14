@@ -4,12 +4,12 @@ const { auth } = require("../utils/middleware");
 const {
   getUser,
   setuserAvatar,
-  removeUserAvatar,
+  removeuserAvatar,
 } = require("../controllers/user");
 
 const router = express.Router();
 router.get("/:username", getUser);
-router.post('/avatar', auth, setuserAvatar);
-router.delete('/avatar', auth, removeUserAvatar);
+router.post("/avatar", auth, setuserAvatar);
+router.delete("/avatar", auth, removeuserAvatar);
 
 module.exports = router;
