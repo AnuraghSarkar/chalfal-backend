@@ -73,4 +73,6 @@ const getSubredditPosts = async (req, res) => {
   res.status(200).json({ subDetails: subreddit, posts: paginatedPosts });
 };
 
-module.exports = { getSubreddits, getSubredditPosts };
+const getTopSubreddits = async (req, res) => { };
+
+module.exports = { getSubreddits, getSubredditPosts, getTopSubreddits };
