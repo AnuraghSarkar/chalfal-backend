@@ -73,6 +73,13 @@ const getSubredditPosts = async (req, res) => {
   res.status(200).json({ subDetails: subreddit, posts: paginatedPosts });
 };
 
-const getTopSubreddits = async (req, res) => { };
+const getTopSubreddits = async (_req, res) => {
+  const top10Subreddits = await Subreddit.find({})
+    .sort({ subscriberCount: -1 })
+    .limit(10)
+    .select("-description -posts -admin ");
+
+  res.status(200).json(top10Subreddits);
+};
 
 module.exports = { getSubreddits, getSubredditPosts, getTopSubreddits };
