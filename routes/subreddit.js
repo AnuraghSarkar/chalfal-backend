@@ -6,16 +6,16 @@ const {
   getTopSubreddits,
   createNewSubreddit,
   editSubDescription,
-  deleteSubreddit,
   subscribeToSubreddit,
 } = require("../controllers/subreddit");
+
 const router = express.Router();
+
 router.get("/", getSubreddits);
 router.get("/r/:subredditName", getSubredditPosts);
 router.get("/top10", getTopSubreddits);
 router.post("/", auth, createNewSubreddit);
 router.patch("/:id", auth, editSubDescription);
-router.delete("/:id", auth, deleteSubreddit);
 router.post("/:id/subscribe", auth, subscribeToSubreddit);
 
-exports.router = router;
+module.exports = router;

@@ -1,15 +1,15 @@
 const express = require("express");
 const { auth } = require("../utils/middleware");
-
 const {
   getUser,
-  setuserAvatar,
-  removeuserAvatar,
+  setUserAvatar,
+  removeUserAvatar,
 } = require("../controllers/user");
 
 const router = express.Router();
+
 router.get("/:username", getUser);
-router.post("/avatar", auth, setuserAvatar);
-router.delete("/avatar", auth, removeuserAvatar);
+router.post("/avatar", auth, setUserAvatar);
+router.delete("/avatar", auth, removeUserAvatar);
 
 module.exports = router;

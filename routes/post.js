@@ -2,7 +2,7 @@ const express = require("express");
 const { auth } = require("../utils/middleware");
 const {
   getPosts,
-  getSuscribedPosts,
+  getSubscribedPosts,
   getSearchedPosts,
   getPostAndComments,
   createNewPost,
@@ -31,7 +31,7 @@ const router = express.Router();
 router.get("/", getPosts);
 router.get("/search", getSearchedPosts);
 router.get("/:id/comments", getPostAndComments);
-router.get("/subscribed", auth, getSuscribedPosts);
+router.get("/subscribed", auth, getSubscribedPosts);
 router.post("/", auth, createNewPost);
 router.patch("/:id", auth, updatePost);
 router.delete(":id", auth, deletePost);
