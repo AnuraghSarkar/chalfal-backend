@@ -217,5 +217,6 @@ module.exports = {
   getTopSubreddits,
   createNewSubreddit,
   editSubDescription,
+  deleteSubreddit,
   subscribeToSubreddit,
 };
