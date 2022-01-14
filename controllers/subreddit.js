@@ -82,4 +82,7 @@ const getTopSubreddits = async (_req, res) => {
   res.status(200).json(top10Subreddits);
 };
 
-module.exports = { getSubreddits, getSubredditPosts, getTopSubreddits };
+// creating a new subreddit
+const createNewSubreddit = async (req, res) => { };
+
+module.exports = { getSubreddits, getSubredditPosts, getTopSubreddits, createNewSubreddit };
