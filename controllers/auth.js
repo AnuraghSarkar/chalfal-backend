@@ -13,7 +13,7 @@ const loginUser = async (req, res) => {
   if (!user) {
     return res
       .status(400)
-      .send({ message: "No account with this username has been registered." });
+      .send({ message: "Account with this username has not been registered." });
   }
 
   const credentialsValid = await bcrypt.compare(password, user.passwordHash);
