@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
-const uniqueValidator = require("mongoose-unique-validator");
-const schemaCleaner = require("../utils/schemaCleaner");
+const mongoose = require('mongoose');
+const uniqueValidator = require('mongoose-unique-validator');
+const schemaCleaner = require('../utils/schemaCleaner');
 
 const subredditSchema = new mongoose.Schema(
   {
@@ -18,17 +18,17 @@ const subredditSchema = new mongoose.Schema(
     posts: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Post",
+        ref: 'Post',
       },
     ],
     admin: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
     subscribedBy: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: 'User',
       },
     ],
     subscriberCount: {
@@ -46,4 +46,4 @@ subredditSchema.plugin(uniqueValidator);
 // replaces _id with id, convert id to string from ObjectID and deletes __v
 schemaCleaner(subredditSchema);
 
-module.exports = mongoose.model("Subreddit", subredditSchema);
+module.exports = mongoose.model('Subreddit', subredditSchema);

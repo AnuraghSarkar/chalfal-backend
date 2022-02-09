@@ -1,7 +1,7 @@
-const app = require("./app");
-const http = require("http");
-const { PORT } = require("./utils/config");
-const connectToDB = require("./db");
+const app = require('./app');
+const http = require('http');
+const { PORT } = require('./utils/config');
+const connectToDB = require('./db');
 
 connectToDB();
 

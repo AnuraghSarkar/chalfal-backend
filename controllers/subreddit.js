@@ -1,11 +1,11 @@
-const Subreddit = require("../models/subreddit");
-const User = require("../models/user");
-const Post = require("../models/post");
+const Subreddit = require('../models/subreddit');
+const User = require('../models/user');
+const Post = require('../models/post');
 
-const paginateResults = require("../utils/paginateResults");
+const paginateResults = require('../utils/paginateResults');
 
 const getSubreddits = async (_req, res) => {
-  const allSubreddits = await Subreddit.find({}).select("id subredditName");
+  const allSubreddits = await Subreddit.find({}).select('id subredditName');
   res.status(200).json(allSubreddits);
 };
 
@@ -17,22 +17,22 @@ const getSubredditPosts = async (req, res) => {
 
   let sortQuery;
   switch (sortBy) {
-    case "new":
+    case 'new':
       sortQuery = { createdAt: -1 };
       break;
-    case "top":
+    case 'top':
       sortQuery = { pointsCount: -1 };
       break;
-    case "best":
+    case 'best':
       sortQuery = { voteRatio: -1 };
       break;
-    case "hot":
+    case 'hot':
       sortQuery = { hotAlgo: -1 };
       break;
-    case "controversial":
+    case 'controversial':
       sortQuery = { controversialAlgo: -1 };
       break;
-    case "old":
+    case 'old':
       sortQuery = { createdAt: 1 };
       break;
     default:
@@ -40,8 +40,8 @@ const getSubredditPosts = async (req, res) => {
   }
 
   const subreddit = await Subreddit.findOne({
-    subredditName: { $regex: new RegExp("^" + subredditName + "$", "i") },
-  }).populate("admin", "username");
+    subredditName: { $regex: new RegExp('^' + subredditName + '$', 'i') },
+  }).populate('admin', 'username');
 
   if (!subreddit) {
     return res.status(404).send({
@@ -56,11 +56,11 @@ const getSubredditPosts = async (req, res) => {
   const paginated = paginateResults(page, limit, postsCount);
   const subredditPosts = await Post.find({ subreddit: subreddit.id })
     .sort(sortQuery)
-    .select("-comments")
+    .select('-comments')
     .limit(limit)
     .skip(paginated.startIndex)
-    .populate("author", "username")
-    .populate("subreddit", "subredditName");
+    .populate('author', 'username')
+    .populate('subreddit', 'subredditName');
 
   const paginatedPosts = {
     previous: paginated.results.previous,
@@ -75,7 +75,7 @@ const getTopSubreddits = async (_req, res) => {
   const top10Subreddits = await Subreddit.find({})
     .sort({ subscriberCount: -1 })
     .limit(10)
-    .select("-description -posts -admin ");
+    .select('-description -posts -admin ');
 
   res.status(200).json(top10Subreddits);
 };
@@ -87,11 +87,11 @@ const createNewSubreddit = async (req, res) => {
   if (!admin) {
     return res
       .status(404)
-      .send({ message: "User does not exist in database." });
+      .send({ message: 'User does not exist in database.' });
   }
 
   const existingSubName = await Subreddit.findOne({
-    subredditName: { $regex: new RegExp("^" + subredditName + "$", "i") },
+    subredditName: { $regex: new RegExp('^' + subredditName + '$', 'i') },
   });
 
   if (existingSubName) {
@@ -132,7 +132,7 @@ const editSubDescription = async (req, res) => {
   if (!admin) {
     return res
       .status(404)
-      .send({ message: "User does not exist in database." });
+      .send({ message: 'User does not exist in database.' });
   }
 
   if (!subreddit) {
@@ -142,7 +142,7 @@ const editSubDescription = async (req, res) => {
   }
 
   if (subreddit.admin.toString() !== admin._id.toString()) {
-    return res.status(401).send({ message: "Access is denied." });
+    return res.status(401).send({ message: 'Access is denied.' });
   }
 
   subreddit.description = description;

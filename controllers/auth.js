@@ -1,25 +1,25 @@
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const User = require("../models/user");
-const { SECRET } = require("../utils/config");
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const User = require('../models/user');
+const { SECRET } = require('../utils/config');
 
 const loginUser = async (req, res) => {
   const { username, password } = req.body;
 
   const user = await User.findOne({
-    username: { $regex: new RegExp("^" + username + "$", "i") },
+    username: { $regex: new RegExp('^' + username + '$', 'i') },
   });
 
   if (!user) {
     return res
       .status(400)
-      .send({ message: "Account with this username has not been registered." });
+      .send({ message: 'No account with this username has been registered.' });
   }
 
   const credentialsValid = await bcrypt.compare(password, user.passwordHash);
 
   if (!credentialsValid) {
-    return res.status(401).send({ message: "Invalid username or password." });
+    return res.status(401).send({ message: 'Invalid username or password.' });
   }
 
   const payloadForToken = {
@@ -43,17 +43,17 @@ const signupUser = async (req, res) => {
   if (!password || password.length < 6) {
     return res
       .status(400)
-      .send({ message: "Password needs to be atleast 6 characters long." });
+      .send({ message: 'Password needs to be atleast 6 characters long.' });
   }
 
   if (!username || username.length > 20 || username.length < 3) {
     return res
       .status(400)
-      .send({ message: "Username character length must be in range of 3-20." });
+      .send({ message: 'Username character length must be in range of 3-20.' });
   }
 
   const existingUser = await User.findOne({
-    username: { $regex: new RegExp("^" + username + "$", "i") },
+    username: { $regex: new RegExp('^' + username + '$', 'i') },
   });
 
   if (existingUser) {
