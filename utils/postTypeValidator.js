@@ -1,4 +1,4 @@
-const validator = require("validator");
+const validator = require('validator');
 
 const parseTextSubmission = (textSubmission) => {
   if (!textSubmission) {
@@ -23,27 +23,27 @@ const parseImageSubmission = (imageSubmission) => {
 
 const postTypeValidator = (type, text, link, image) => {
   switch (type) {
-    case "Text":
+    case 'Text':
       return {
-        postType: "Text",
+        postType: 'Text',
         textSubmission: parseTextSubmission(text),
       };
 
-    case "Link":
+    case 'Link':
       return {
-        postType: "Link",
+        postType: 'Link',
         linkSubmission: parseLinkSubmission(link),
       };
 
-    case "Image":
+    case 'Image':
       return {
-        postType: "Image",
+        postType: 'Image',
         imageSubmission: parseImageSubmission(image),
       };
 
     default:
       throw new Error(
-        "Invalid post type. Valid types include - Text, Link or Image."
+        'Invalid post type. Valid types include - Text, Link or Image.'
       );
   }
 };

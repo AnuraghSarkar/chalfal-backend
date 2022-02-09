@@ -1,4 +1,3 @@
-
 const numOfComments = (commentsArray) => {
   const numOfReplies = commentsArray
     .map((c) => c.replies.length)

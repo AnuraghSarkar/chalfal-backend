@@ -1,5 +1,5 @@
-const Post = require("../models/post");
-const User = require("../models/user");
+const Post = require('../models/post');
+const User = require('../models/user');
 
 const upvoteComment = async (req, res) => {
   const { id, commentId } = req.params;
@@ -16,7 +16,7 @@ const upvoteComment = async (req, res) => {
   if (!user) {
     return res
       .status(404)
-      .send({ message: "User does not exist in database." });
+      .send({ message: 'User does not exist in database.' });
   }
 
   const targetComment = post.comments.find(
@@ -34,7 +34,7 @@ const upvoteComment = async (req, res) => {
   if (!commentAuthor) {
     return res
       .status(404)
-      .send({ message: "Comment author does not exist in database." });
+      .send({ message: 'Comment author does not exist in database.' });
   }
 
   if (targetComment.upvotedBy.includes(user._id.toString())) {
@@ -80,7 +80,7 @@ const downvoteComment = async (req, res) => {
   if (!user) {
     return res
       .status(404)
-      .send({ message: "User does not exist in database." });
+      .send({ message: 'User does not exist in database.' });
   }
 
   const targetComment = post.comments.find(
@@ -98,7 +98,7 @@ const downvoteComment = async (req, res) => {
   if (!commentAuthor) {
     return res
       .status(404)
-      .send({ message: "Comment author does not exist in database." });
+      .send({ message: 'Comment author does not exist in database.' });
   }
 
   if (targetComment.downvotedBy.includes(user._id.toString())) {
@@ -144,7 +144,7 @@ const upvoteReply = async (req, res) => {
   if (!user) {
     return res
       .status(404)
-      .send({ message: "User does not exist in database." });
+      .send({ message: 'User does not exist in database.' });
   }
 
   const targetComment = post.comments.find(
@@ -172,7 +172,7 @@ const upvoteReply = async (req, res) => {
   if (!replyAuthor) {
     return res
       .status(404)
-      .send({ message: "Reply author does not exist in database." });
+      .send({ message: 'Reply author does not exist in database.' });
   }
 
   if (targetReply.upvotedBy.includes(user._id.toString())) {
@@ -221,7 +221,7 @@ const downvoteReply = async (req, res) => {
   if (!user) {
     return res
       .status(404)
-      .send({ message: "User does not exist in database." });
+      .send({ message: 'User does not exist in database.' });
   }
 
   const targetComment = post.comments.find(
@@ -249,7 +249,7 @@ const downvoteReply = async (req, res) => {
   if (!replyAuthor) {
     return res
       .status(404)
-      .send({ message: "Reply author does not exist in database." });
+      .send({ message: 'Reply author does not exist in database.' });
   }
 
   if (targetReply.downvotedBy.includes(user._id.toString())) {

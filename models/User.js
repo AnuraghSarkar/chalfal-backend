@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
-const uniqueValidator = require("mongoose-unique-validator");
-const schemaCleaner = require("../utils/schemaCleaner");
+const mongoose = require('mongoose');
+const uniqueValidator = require('mongoose-unique-validator');
+const schemaCleaner = require('../utils/schemaCleaner');
 
 const userSchema = new mongoose.Schema(
   {
@@ -18,17 +18,17 @@ const userSchema = new mongoose.Schema(
     avatar: {
       exists: {
         type: Boolean,
-        default: "false",
+        default: 'false',
       },
       imageLink: {
         type: String,
         trim: true,
-        default: "null",
+        default: 'null',
       },
       imageId: {
         type: String,
         trim: true,
-        default: "null",
+        default: 'null',
       },
     },
     karmaPoints: {
@@ -44,13 +44,13 @@ const userSchema = new mongoose.Schema(
     posts: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Post",
+        ref: 'Post',
       },
     ],
     subscribedSubs: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Subreddit",
+        ref: 'Subreddit',
       },
     ],
     totalComments: {
@@ -68,4 +68,4 @@ userSchema.plugin(uniqueValidator);
 // replaces _id with id, convert id to string from ObjectID and deletes __v
 schemaCleaner(userSchema);
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model('User', userSchema);
