@@ -42,7 +42,7 @@ describe('Testing User Schema', () => {
         const user = {
             'username': 'testing123',
             //make user require false in user route
-            'passwordHash': 'password',
+            'passwordHash': `RA6wsUhpsD$agaGasg@gagfsa`,
 
         };
 
@@ -53,7 +53,7 @@ describe('Testing User Schema', () => {
     });
     //test: delete user
     it('delete/user ---> delete a user', async () => {
-        await User.deleteOne();
+        await User.deleteOne({username:'testing123'});
         expect(1).toBe(1);
     });
 });
