@@ -8,6 +8,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "test": "jest --watchAll",
     "build:ui": "rm -rf build && cd ../client && rm -rf build && npm run build --prod && cp -r build ../server"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "validator": "^13.7.0"
   },
   "devDependencies": {
-    "eslint": "^8.8.0"
+    "eslint": "^8.8.0",
+    "jest": "^27.5.1"
   }
 }
